@@ -1,0 +1,391 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BuzzBurst Media – Let's Get to Know You</title>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      background: #0A0A0F;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: Georgia, 'Times New Roman', serif;
+      padding: 20px;
+      overflow-x: hidden;
+    }
+    .bg-glow {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 80% 50% at 50% -10%, #FF3B5718 0%, transparent 70%),
+        radial-gradient(ellipse 40% 40% at 80% 80%, #3B1AFF0A 0%, transparent 60%);
+    }
+    .header { position: relative; z-index: 1; text-align: center; margin-bottom: 36px; }
+    .logo { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 6px; }
+    .logo-icon {
+      width: 34px; height: 34px; border-radius: 8px; background: #FF3B57;
+      display: flex; align-items: center; justify-content: center; font-size: 18px;
+    }
+    .logo-text { font-size: 22px; font-weight: 700; color: #F0EEF8; }
+    .logo-text span { color: #FF3B57; }
+    .subtitle { color: #6B6880; font-size: 12px; font-family: sans-serif; letter-spacing: 1px; }
+    .card {
+      position: relative; z-index: 1;
+      background: #12121A; border: 1px solid #1E1E2E;
+      border-radius: 20px; padding: 40px;
+      max-width: 560px; width: 100%;
+      box-shadow: 0 24px 60px #00000050;
+      transition: opacity 0.25s, transform 0.25s;
+    }
+    .card.fade { opacity: 0; transform: translateY(10px); }
+    .progress-header { display: flex; justify-content: space-between; margin-bottom: 8px; }
+    .progress-label { color: #6B6880; font-size: 12px; font-family: sans-serif; letter-spacing: 0.5px; }
+    .progress-pct { color: #FF3B57; font-size: 12px; font-family: sans-serif; }
+    .progress-bar { height: 3px; background: #1E1E2E; border-radius: 2px; overflow: hidden; margin-bottom: 32px; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, #FF3B57, #FF7A3B); border-radius: 2px; transition: width 0.4s ease; }
+    .question { color: #F0EEF8; font-size: 20px; line-height: 1.5; margin-bottom: 28px; font-weight: normal; }
+    .options { display: flex; flex-direction: column; gap: 10px; }
+    .opt-btn {
+      background: transparent; border: 1px solid #1E1E2E; border-radius: 12px;
+      padding: 14px 18px; text-align: left; color: #6B6880;
+      font-size: 15px; cursor: pointer; font-family: sans-serif;
+      transition: all 0.15s; display: flex; align-items: center; gap: 12px;
+    }
+    .opt-btn:hover { border-color: #3B3B5A; color: #F0EEF8; }
+    .opt-btn.selected { background: #FF3B5718; border-color: #FF3B57; color: #F0EEF8; }
+    .radio {
+      width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0;
+      border: 2px solid #1E1E2E; background: transparent;
+      display: inline-flex; align-items: center; justify-content: center; transition: all 0.15s;
+    }
+    .opt-btn.selected .radio { background: #FF3B57; border-color: #FF3B57; }
+    .radio-dot { width: 7px; height: 7px; border-radius: 50%; background: #fff; display: none; }
+    .opt-btn.selected .radio-dot { display: block; }
+    .chips { display: flex; flex-wrap: wrap; gap: 10px; }
+    .chip {
+      background: transparent; border: 1px solid #1E1E2E; border-radius: 30px;
+      padding: 9px 18px; color: #6B6880; font-size: 14px; cursor: pointer;
+      font-family: sans-serif; transition: all 0.15s;
+    }
+    .chip:hover { border-color: #3B3B5A; color: #F0EEF8; }
+    .chip.selected { background: #FF3B5718; border-color: #FF3B57; color: #F0EEF8; }
+    .chip-hint { width: 100%; color: #6B6880; font-size: 12px; margin-top: 4px; font-family: sans-serif; }
+    .scale-wrap { display: flex; gap: 8px; margin-bottom: 12px; }
+    .scale-btn {
+      flex: 1; aspect-ratio: 1; background: transparent; border: 1px solid #1E1E2E;
+      border-radius: 10px; color: #6B6880; font-size: 14px; cursor: pointer;
+      font-family: sans-serif; transition: all 0.15s;
+    }
+    .scale-btn:hover { border-color: #FF3B57; color: #F0EEF8; }
+    .scale-btn.selected { background: #FF3B57; border-color: #FF3B57; color: #fff; font-weight: bold; }
+    .scale-labels { display: flex; justify-content: space-between; }
+    .scale-label { color: #6B6880; font-size: 12px; font-family: sans-serif; }
+    textarea, input[type="text"], input[type="email"] {
+      width: 100%; background: #0D0D16; border: 1px solid #1E1E2E;
+      border-radius: 12px; padding: 14px 16px; color: #F0EEF8;
+      font-size: 15px; font-family: sans-serif; outline: none;
+      line-height: 1.6; transition: border-color 0.2s;
+    }
+    textarea { resize: vertical; }
+    textarea:focus, input:focus { border-color: #FF3B57; }
+    .input-group { display: flex; flex-direction: column; gap: 12px; }
+    .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 32px; }
+    .back-btn {
+      background: transparent; border: none; color: #6B6880;
+      font-size: 14px; cursor: pointer; font-family: sans-serif; padding: 0;
+      transition: color 0.15s;
+    }
+    .back-btn:hover { color: #F0EEF8; }
+    .back-btn:disabled { color: #2A2A3A; cursor: default; }
+    .next-btn {
+      background: #FF3B57; border: none; border-radius: 12px;
+      padding: 13px 28px; min-width: 140px; color: #fff;
+      font-size: 15px; cursor: pointer; font-family: sans-serif;
+      font-weight: 600; transition: all 0.2s;
+      box-shadow: 0 4px 20px #FF3B5740;
+    }
+    .next-btn:disabled { background: #2A2A3A; color: #6B6880; cursor: default; box-shadow: none; }
+    .error-box {
+      margin-top: 16px; background: #FF3B5715; border: 1px solid #FF3B5740;
+      border-radius: 10px; padding: 12px 16px;
+    }
+    .error-box p { color: #FF8095; font-size: 13px; font-family: sans-serif; }
+    .success-card {
+      position: relative; z-index: 1; background: #12121A; border: 1px solid #1E1E2E;
+      border-radius: 20px; padding: 56px 48px; text-align: center;
+      max-width: 480px; width: 100%; box-shadow: 0 0 60px #FF3B5712;
+    }
+    .success-emoji { font-size: 52px; margin-bottom: 16px; }
+    .success-title { color: #F0EEF8; font-size: 26px; margin-bottom: 12px; }
+    .success-text { color: #6B6880; font-size: 15px; line-height: 1.7; margin-bottom: 32px; font-family: sans-serif; }
+    .restart-btn {
+      background: transparent; border: 1px solid #FF3B57; color: #FF3B57;
+      border-radius: 10px; padding: 10px 24px; font-size: 14px;
+      cursor: pointer; font-family: sans-serif; transition: all 0.2s;
+    }
+    .restart-btn:hover { background: #FF3B5715; }
+  </style>
+</head>
+<body>
+  <div class="bg-glow"></div>
+
+  <div class="header">
+    <div class="logo">
+      <div class="logo-icon">
+        <img src="logo.png" alt="Logo" style="width:18px; height:18px;"> 
+      </div>
+      <span class="logo-text">BuzzBurst <span>Media</span></span>
+    </div>
+    <p class="subtitle">LET'S GET TO KNOW YOU</p>
+  </div>
+
+  <div id="survey-container"></div>
+
+  <script>
+    emailjs.init("Ur3NbY8GfDihqOfJs");
+
+    const questions = [
+      {
+        id: 1, type: "input",
+        question: "First, what's your name and business name?",
+        fields: [
+          { key: "name", placeholder: "Your full name" },
+          { key: "business", placeholder: "Your business name" }
+        ]
+      },
+      {
+        id: 2, type: "input-single",
+        question: "What's the best email to reach you?",
+        fields: [{ key: "email", placeholder: "your@email.com", inputType: "email" }]
+      },
+      {
+        id: 3, type: "single",
+        question: "What industry is your business in?",
+        options: ["Retail / E-commerce", "Food & Beverage", "Health & Wellness", "Tech / SaaS", "Real Estate", "Fashion & Beauty", "Other"]
+      },
+      {
+        id: 4, type: "single",
+        question: "How long has your business been operating?",
+        options: ["Just starting out (idea stage)", "Less than 1 year", "1–3 years", "3–5 years", "5+ years"]
+      },
+      {
+        id: 5, type: "multi",
+        question: "What are your biggest marketing challenges right now?",
+        options: ["Not enough brand awareness", "Low social media engagement", "No clear marketing strategy", "Difficulty getting leads", "Poor website traffic", "Limited budget", "Don't know where to start"]
+      },
+      {
+        id: 6, type: "multi",
+        question: "Which marketing services are you most interested in?",
+        options: ["Social media management", "Brand strategy & identity", "Content creation", "Paid ads (Meta, Google)", "Email marketing", "SEO", "Influencer marketing"]
+      },
+      {
+        id: 7, type: "single",
+        question: "What is your approximate monthly marketing budget?",
+        options: ["Under £500", "£500 – £1,000", "£1,000 – £3,000", "£3,000 – £5,000", "£5,000+", "Not sure yet"]
+      },
+      {
+        id: 8, type: "single",
+        question: "How soon are you looking to get started?",
+        options: ["Immediately", "Within the next month", "In 2–3 months", "Just exploring for now"]
+      },
+      {
+        id: 9, type: "scale",
+        question: "How satisfied are you with your current marketing efforts?",
+        low: "Very unsatisfied", high: "Very satisfied"
+      },
+      {
+        id: 10, type: "text",
+        question: "Is there anything else you'd like us to know about your business or goals?",
+        placeholder: "Tell us more about your vision..."
+      }
+    ];
+
+    let current = 0;
+    let answers = {};
+
+    function getAnswer() { return answers[questions[current].id]; }
+
+    function canProceed() {
+      const q = questions[current];
+      const a = getAnswer();
+      if (q.type === "text") return true;
+      if (q.type === "input") return q.fields.every(f => answers[q.id]?.[f.key]?.trim());
+      if (q.type === "input-single") return answers[q.id]?.[q.fields[0].key]?.trim();
+      if (q.type === "multi") return a && a.length > 0;
+      return !!a;
+    }
+
+    function formatAnswers() {
+      return questions.map(q => {
+        const a = answers[q.id];
+        let text = "No answer";
+        if (!a) { text = "No answer"; }
+        else if (q.type === "input" || q.type === "input-single") {
+          text = q.fields.map(f => `${f.placeholder}: ${a[f.key] || "—"}`).join(" | ");
+        } else if (Array.isArray(a)) { text = a.join(", "); }
+        else { text = String(a); }
+        return `Q${q.id}: ${q.question}\nA: ${text}`;
+      }).join("\n\n");
+    }
+
+    function render() {
+      const container = document.getElementById("survey-container");
+      if (current >= questions.length) { renderSuccess(); return; }
+      const q = questions[current];
+      const progress = Math.round((current / questions.length) * 100);
+
+      let inputHTML = "";
+
+      if (q.type === "single") {
+        inputHTML = `<div class="options">` + q.options.map(opt => {
+          const sel = answers[q.id] === opt ? "selected" : "";
+          return `<button class="opt-btn ${sel}" onclick="selectSingle(${q.id}, '${opt.replace(/'/g, "\\'")}')">
+            <span class="radio"><span class="radio-dot"></span></span>${opt}
+          </button>`;
+        }).join("") + `</div>`;
+      }
+
+      if (q.type === "multi") {
+        inputHTML = `<div class="chips">` + q.options.map(opt => {
+          const sel = (answers[q.id] || []).includes(opt) ? "selected" : "";
+          return `<button class="chip ${sel}" onclick="toggleMulti(${q.id}, '${opt.replace(/'/g, "\\'")}')">
+            ${sel ? "✓ " : ""}${opt}
+          </button>`;
+        }).join("") + `<p class="chip-hint">Select all that apply</p></div>`;
+      }
+
+      if (q.type === "scale") {
+        inputHTML = `<div class="scale-wrap">` +
+          [1,2,3,4,5,6,7,8,9,10].map(n => {
+            const sel = answers[q.id] === n ? "selected" : "";
+            return `<button class="scale-btn ${sel}" onclick="selectScale(${q.id}, ${n})">${n}</button>`;
+          }).join("") +
+          `</div><div class="scale-labels"><span class="scale-label">${q.low}</span><span class="scale-label">${q.high}</span></div>`;
+      }
+
+      if (q.type === "text") {
+        const val = answers[q.id] || "";
+        inputHTML = `<textarea rows="4" placeholder="${q.placeholder}" oninput="saveText(${q.id}, this.value)">${val}</textarea>`;
+      }
+
+      if (q.type === "input" || q.type === "input-single") {
+        inputHTML = `<div class="input-group">` + q.fields.map(f => {
+          const val = answers[q.id]?.[f.key] || "";
+          const type = f.inputType || "text";
+          return `<input type="${type}" placeholder="${f.placeholder}" value="${val}" oninput="saveInput(${q.id}, '${f.key}', this.value)" />`;
+        }).join("") + `</div>`;
+      }
+
+      const btnLabel = current === questions.length - 1 ? "Submit →" : "Continue →";
+      const disabled = canProceed() ? "" : "disabled";
+
+      container.innerHTML = `
+        <div class="card" id="main-card">
+          <div class="progress-header">
+            <span class="progress-label">QUESTION ${current + 1} OF ${questions.length}</span>
+            <span class="progress-pct">${progress}%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" style="width:${progress}%"></div></div>
+          <p class="question">${q.question}</p>
+          ${inputHTML}
+          <div id="error-area"></div>
+          <div class="nav">
+            <button class="back-btn" onclick="goBack()" ${current === 0 ? "disabled" : ""}>← Back</button>
+            <button class="next-btn" id="next-btn" onclick="goNext()" ${disabled}>${btnLabel}</button>
+          </div>
+        </div>`;
+    }
+
+    function renderSuccess() {
+      document.getElementById("survey-container").innerHTML = `
+        <div class="success-card">
+          <div class="success-emoji">🎉</div>
+          <h2 class="success-title">Thank you!</h2>
+          <p class="success-text">We've received your details and will be in touch soon. BuzzBurst Media is excited to learn more about your business and how we can help you grow.</p>
+          <button class="restart-btn" onclick="restart()">Submit another response</button>
+        </div>`;
+    }
+
+    function selectSingle(id, val) {
+      answers[id] = val;
+      render();
+    }
+
+    function toggleMulti(id, val) {
+      const prev = answers[id] || [];
+      answers[id] = prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val];
+      render();
+    }
+
+    function selectScale(id, val) {
+      answers[id] = val;
+      render();
+    }
+
+    function saveText(id, val) { answers[id] = val; updateNextBtn(); }
+
+    function saveInput(id, key, val) {
+      if (!answers[id]) answers[id] = {};
+      answers[id][key] = val;
+      updateNextBtn();
+    }
+
+    function updateNextBtn() {
+      const btn = document.getElementById("next-btn");
+      if (btn) btn.disabled = !canProceed();
+    }
+
+    function goBack() {
+      if (current === 0) return;
+      animateOut(() => { current--; render(); });
+    }
+
+    function goNext() {
+      if (!canProceed()) return;
+      if (current === questions.length - 1) { submitSurvey(); return; }
+      animateOut(() => { current++; render(); });
+    }
+
+    function animateOut(cb) {
+      const card = document.getElementById("main-card");
+      if (card) card.classList.add("fade");
+      setTimeout(cb, 220);
+    }
+
+    async function submitSurvey() {
+      const btn = document.getElementById("next-btn");
+      if (btn) { btn.disabled = true; btn.textContent = "Sending..."; }
+
+      const name = answers[1]?.name || "Unknown";
+      const business = answers[1]?.business || "Unknown";
+      const email = answers[2]?.email || "Not provided";
+
+      try {
+        await emailjs.send("service_965mvse", "template_nq7h2ei", {
+          name: `${name} (${business})`,
+          message: formatAnswers(),
+          responses: formatAnswers(),
+          to_email: "buzzburstmedia1@gmail.com",
+          reply_to: email,
+        });
+        current = questions.length;
+        render();
+      } catch (err) {
+        console.error(err);
+        const errArea = document.getElementById("error-area");
+        if (errArea) errArea.innerHTML = `<div class="error-box"><p>⚠️ Failed to send. Please check your connection and try again.</p></div>`;
+        if (btn) { btn.disabled = false; btn.textContent = "Submit →"; }
+      }
+    }
+
+    function restart() { current = 0; answers = {}; render(); }
+
+    render();
+  </script>
+</body>
+</html>
